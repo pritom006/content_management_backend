@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: content_api
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - SQL_ENGINE=django.db.backends.postgresql
+      - SQL_DATABASE=content_db
+      - SQL_USER=content_admin
+      - SQL_PASSWORD=content_secure_pass_123
+      - SQL_HOST=content_db
+      - SQL_PORT=5432
+    depends_on:
+      - content_db
+    networks:
+      - content_network
+    restart: always
+
+  content_db:
+    image: postgres:15
+    container_name: content_database
+    volumes:
+      - content_postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=content_db
+      - POSTGRES_USER=content_admin
+      - POSTGRES_PASSWORD=content_secure_pass_123
+    ports:
+      - "5432:5432"
+    networks:
+      - content_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U content_admin -d content_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+networks:
+  content_network:
+    driver: bridge
+    name: content_network
+
+volumes:
+  content_postgres_data:
+    name: content_postgres_data
