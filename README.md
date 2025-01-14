@@ -56,7 +56,11 @@ source virtual_env_name/bin/activate
 ```bash
 docker-compose up --build
 ```
-   
+```bash
+migration
+docker-compose exec api python manage.py makemigrations
+docker-compose exec api pytohn manage.py migrate
+```
 ```bash
 without docker
 pip install -r requirements.txt
