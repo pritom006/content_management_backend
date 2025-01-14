@@ -181,6 +181,27 @@ class ContentViewSet(viewsets.ModelViewSet):
             serializer.save(created_by=user)
         else:
             raise PermissionDenied("You do not have permission to create content.")
+    
+    def retrieve(self, request, pk=None):
+        try:
+            content = Content.objects.get(pk=pk)
+            serializer = ContentSerializer(content)
+            return Response(serializer.data)
+        except Content.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    def update(self, request, pk=None):
+        try:
+            content = Content.objects.get(pk=pk)
+            serializer = ContentSerializer(content, data=request.data, partial=True, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Content.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['patch'], permission_classes=[IsAdminUser])
     def state(self, request, pk=None):
